@@ -9,21 +9,25 @@ import {
     DialogTrigger,
     DialogFooter
 } from "@/components/ui/dialog"
+import { useUser } from '@clerk/nextjs'; 
 import { Input } from "@/components/ui/input"
 import { Button } from '@/components/ui/button'
 import { DialogClose } from '@radix-ui/react-dialog'
 import { LoaderIcon } from 'lucide-react'
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import uuid4 from 'uuid4'
 
 
 
 
 function UploadPdfDialog({ children }) {
     const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
-    const InsertFileEntry = useMutation(api.fileStorage.AddFileEntryToDb);
+    const addFileEntry = useMutation(api.fileStorage.AddFileEntryToDb);
+    const {user} = useUser();
     const [file, setFile] = useState();
     const [loading, setLoading] = useState(false);
+    const [fileName,setFileName] = useState();
     const OnFileSelect = (event) => {
         setFile(event.target.files[0]);
     }
@@ -39,11 +43,15 @@ function UploadPdfDialog({ children }) {
         });
         const { storageId } = await result.json();
         console.log('StorageId', storageId);
-        const fileId = 
-        await sendImage({ storageId, author: name });
-
-        setSelectedImage(null);
-        imageInput.current.value = "";
+        const fileId = uuid4();
+        
+        const resp = await addFileEntry({
+            fileId:fileId,
+            storageId:storageId,
+            fileName:fileName??'Untitled File',
+            createdBy:user?.primaryEmailAddress?.emailAddress
+        })
+        console.log(resp);
         setLoading(false);
 
     }
@@ -63,7 +71,7 @@ function UploadPdfDialog({ children }) {
                             </div>
                             <div className='mt-2'>
                                 <label>File Name *</label>
-                                <Input placeholder='filename' />
+                                <Input placeholder='File Name' onChange={(e)=> setFileName(e.target.value)}/>
                             </div>
 
                         </div>

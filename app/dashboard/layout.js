@@ -1,5 +1,5 @@
 import React from 'react'
-import SideBar from './_components/Sidebar'
+import SideBar from './_components/SideBar'
 import Header from './_components/Header'
 
 function DashboardLayout({children}) {
