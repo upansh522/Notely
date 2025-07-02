@@ -24,6 +24,7 @@ import uuid4 from 'uuid4'
 function UploadPdfDialog({ children }) {
     const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
     const addFileEntry = useMutation(api.fileStorage.AddFileEntryToDb);
+    const getFileUrl = useMutation(api.fileStorage.getFileUrl);
     const {user} = useUser();
     const [file, setFile] = useState();
     const [loading, setLoading] = useState(false);
@@ -42,13 +43,14 @@ function UploadPdfDialog({ children }) {
             body: file,
         });
         const { storageId } = await result.json();
-        console.log('StorageId', storageId);
+        console.log('storageId', storageId);
         const fileId = uuid4();
-        
+        const fileUrl = await getFileUrl({storageId:storageId})
         const resp = await addFileEntry({
             fileId:fileId,
             storageId:storageId,
             fileName:fileName??'Untitled File',
+            fileUrl:fileUrl,
             createdBy:user?.primaryEmailAddress?.emailAddress
         })
         console.log(resp);

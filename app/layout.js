@@ -10,13 +10,14 @@ export const metadata = {
 
 const outfit = Outfit({
   subsets: ['latin']
-})
+});
 
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={outfit.className}>
+        {/* suppressHydrationWarning will stop React complaining about extra attrs */}
+        <body suppressHydrationWarning className={outfit.className}>
           <Provider>
             {children}
           </Provider>
