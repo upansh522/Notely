@@ -51,7 +51,7 @@ const EditorElements = ({ editor }: { editor: any }) => {
         const prompt =
       textContent === ""
         ? "The user is asking a question but no relevant content was found in the document. Please inform the user that you cannot answer the question without the relevant information from the document. Please provide the output in HTML format, using only the body section."
-        : `For given question: ${selectedText} format the content: ${textContent} like an answer to the question in points and use bullets if necessary, give proper length answer based on the content provided Note: please give output in html format and give body section only also keep the answer to the point dont go out of the question's context`;
+        : `You are a precise assistant. Answer the question strictly using ONLY the provided document excerpts.\n\nQuestion: ${selectedText}\n\nContext: ${textContent}\n\nRequirements:\n- Keep the answer concise and on-topic.\n- Use HTML body-only output (no <html> or <body> tags).\n- Prefer bullet points and short sentences.\n- If the question asks for work experience, list each role with company, title, and dates if present, plus 1-2 key achievements per role.\n- Do NOT fabricate details beyond the context.`;
         const chatSession = startChat();
     const answer = await chatSession.sendMessage(prompt);
     const allText = editor.getHTML();
