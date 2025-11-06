@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
-import { chatSession } from "@/config/Gemini";
+import { startChat } from "@/config/Gemini";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
@@ -48,7 +48,11 @@ const EditorElements = ({ editor }: { editor: any }) => {
         textContent += d.pageContent;
       });
 
-    const prompt = `For given question: ${selectedText} format the content: ${textContent} like an answer to the question in points and use bullets if necessary, give proper length answer based on the content provided Note: please give output in html format and give body section only also keep the answer to the point dont go out of the question's context`;
+        const prompt =
+      textContent === ""
+        ? "The user is asking a question but no relevant content was found in the document. Please inform the user that you cannot answer the question without the relevant information from the document. Please provide the output in HTML format, using only the body section."
+        : `For given question: ${selectedText} format the content: ${textContent} like an answer to the question in points and use bullets if necessary, give proper length answer based on the content provided Note: please give output in html format and give body section only also keep the answer to the point dont go out of the question's context`;
+        const chatSession = startChat();
     const answer = await chatSession.sendMessage(prompt);
     const allText = editor.getHTML();
     const finalAns = answer.response
