@@ -48,13 +48,13 @@ const UploadPdfFile = ({
     //post url from convex similar as presigned url
     const postUrl = await generateUploadUrl();
 
-    const uploadResponse = await fetch(postUrl, {
+    const result = await fetch(postUrl, {
       method: "POST",
       headers: { "Content-Type": file!.type },
       body: file,
     });
 
-    const { storageId } = await uploadResponse.json();
+    const { storageId } = await result.json();
     const fileId = uuidv4();
     const fileUrl = await getFileUrl({ storageId });
 
@@ -67,29 +67,19 @@ const UploadPdfFile = ({
       storageId: storageId,
     });
 
-    const loaderResponse = await axios.get("/api/pdf-loader?pdfUrl=" + fileUrl);
-    const pdfChunks = loaderResponse.data.result;
+    const response = await axios.get("/api/pdf-loader?pdfUrl=" + fileUrl);
 
-    // Batch the embedding calls to avoid Convex's 1MB argument limit and timeouts
-    const batchSize = 50;
-    const totalChunks = pdfChunks.length;
-    console.log(`Starting embedding for ${totalChunks} chunks in batches of ${batchSize}`);
-
-    for (let i = 0; i < totalChunks; i += batchSize) {
-      const chunkBatch = pdfChunks.slice(i, i + batchSize);
-      await embedDocument({
-        splitText: chunkBatch,
-        fileId: fileId,
-      });
-      console.log(`Embedded batch ${Math.floor(i / batchSize) + 1} / ${Math.ceil(totalChunks / batchSize)}`);
-    }
+    await embedDocument({
+      splitText: response.data.result,
+      fileId: fileId,
+    });
 
     setLoading(false);
     setOpen(false);
     setFile(null);
     setFilename("");
     inputRef.current!.value = "";
-    toast("File is ready for note taking!!");
+    toast("file is ready for note taking!!");
   };
 
   return (

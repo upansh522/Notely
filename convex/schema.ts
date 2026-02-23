@@ -21,7 +21,7 @@ export default defineSchema({
     embedding: v.array(v.number()),
     text: v.string(),
     metadata: v.any(),
-  }).vectorIndex("by_embedding", {
+  }).vectorIndex("byEmbedding", {
     vectorField: "embedding",
     dimensions: 768,
   }),

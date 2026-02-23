@@ -22,39 +22,16 @@ export const ingest = action({
     fileId: v.string(),
   },
   handler: async (ctx, args) => {
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      throw new Error("No API key found for embeddings. Set NEXT_PUBLIC_GEMINI_API_KEY or GOOGLE_API_KEY in Convex.");
-    }
-
-    console.log(`Starting ingestion for file ${args.fileId} with ${args.splitText.length} chunks.`);
-
-    const embeddings = new GoogleGenerativeAIEmbeddings768({
-      apiKey: apiKey,
-      model: "gemini-embedding-001",
-      taskType: TaskType.RETRIEVAL_DOCUMENT,
-      title: "Document title",
-    });
-
-    // Process in batches to avoid timeouts and transaction limits
-    const batchSize = 30;
-    for (let i = 0; i < args.splitText.length; i += batchSize) {
-      const batch = args.splitText.slice(i, i + batchSize);
-      console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(args.splitText.length / batchSize)}`);
-      try {
-        await ConvexVectorStore.fromTexts(
-          batch,
-          batch.map(() => ({ fileId: args.fileId })),
-          embeddings,
-          { ctx }
-        );
-      } catch (error) {
-        console.error(`Batch processing failed at index ${i}:`, error);
-        throw new Error(`Failed to embed documents at batch ${i}. ${error instanceof Error ? error.message : ""}`);
-      }
-    }
-
-    console.log(`Successfully ingested file ${args.fileId}`);
+    await ConvexVectorStore.fromTexts(
+      args.splitText,
+      { fileId: args.fileId },
+      new GoogleGenerativeAIEmbeddings768({
+        model: "gemini-embedding-001", // confirmed available model
+        taskType: TaskType.RETRIEVAL_DOCUMENT,
+        title: "Document title",
+      }),
+      { ctx }
+    );
   },
 });
 
@@ -94,8 +71,7 @@ export const search = action({
       console.log("No results found. Attempting query expansion...");
       try {
         const client = new GeminiClient(apiKey);
-        // Corrected model name from gemini-2.5-flash to gemini-1.5-flash
-        const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `You are a retrieval query rewriter. Given a natural-language query, produce 4-6 diverse alternative queries and keyword-style searches that could retrieve the most relevant passages.\n\n- Be concise (max ~6 words each).\n- Cover synonyms, paraphrases, abbreviations, and core keywords.\n- Output ONLY a JSON array of strings (no extra text).\n\nQuery: ${args.query}`;
         const resp = await model.generateContent(prompt);
         const out = resp.response.text();
