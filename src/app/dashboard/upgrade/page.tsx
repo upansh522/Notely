@@ -99,22 +99,23 @@ const page = () => {
         </li>
       </ul>
       <div className="mt-8">
-        <PayPalButtons 
-        onApprove={()=>onPaymentSuccess()}
-        onCancel={()=> console.log('payment cancelled')}
-        createOrder={(data,actions)=>{
-          return actions?.order?.create({
-            purchase_units:[
-              {
-                amount:{
-                  value:30,
-                  currency_code:'USD'               
-                }
-              } 
-            ]
-          })
-        }}
-        />
+        <PayPalButtons
+  onApprove={() => onPaymentSuccess()}
+  onCancel={() => console.log("payment cancelled")}
+  createOrder={(data, actions) => {
+    return actions.order.create({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            value: "30.00", 
+            currency_code: "USD"
+          }
+        }
+      ]
+    })
+  }}
+/>
       </div>
     </div>
 
