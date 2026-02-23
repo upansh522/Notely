@@ -68,18 +68,28 @@ const UploadPdfFile = ({
     });
 
     const response = await axios.get("/api/pdf-loader?pdfUrl=" + fileUrl);
+    const pdfResult = response.data.result;
 
-    await embedDocument({
-      splitText: response.data.result,
-      fileId: fileId,
-    });
+    // Batch the embedding calls to avoid Convex's 1MB argument limit and timeouts
+    const batchSize = 50;
+    const totalChunks = pdfResult.length;
+    console.log(`Starting embedding for ${totalChunks} chunks in batches of ${batchSize}`);
+
+    for (let i = 0; i < totalChunks; i += batchSize) {
+      const chunkBatch = pdfResult.slice(i, i + batchSize);
+      await embedDocument({
+        splitText: chunkBatch,
+        fileId: fileId,
+      });
+      console.log(`Embedded batch ${Math.floor(i / batchSize) + 1} / ${Math.ceil(totalChunks / batchSize)}`);
+    }
 
     setLoading(false);
     setOpen(false);
     setFile(null);
     setFilename("");
     inputRef.current!.value = "";
-    toast("file is ready for note taking!!");
+    toast("File is ready for note taking!!");
   };
 
   return (
